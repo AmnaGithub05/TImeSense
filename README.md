@@ -73,6 +73,18 @@ For a labeled perception CSV, add columns such as `predicted_category` and
 `predicted_page_count`, then run with `--perception path\to\perception.csv`.
 The script writes perception accuracy alongside the time-estimation results.
 
+## Deploying to Render
+
+The repository includes [render.yaml](./render.yaml) for a two-service deployment:
+`timesense-api` (FastAPI) and `timesense-frontend` (React static site). In Render,
+choose **New > Blueprint**, connect this repository, and apply the blueprint.
+Render will prompt for the secret `GEMINI_API_KEY`; enter it in Render's
+environment settings and never commit it.
+
+The free plan uses `/tmp/timesense.db`, so cache and feedback data are ephemeral.
+Use a persistent database or paid disk before production use. The generated
+frontend URL is configured for the API's CORS allowlist by the blueprint.
+
 ## Tests
 
 ```powershell
