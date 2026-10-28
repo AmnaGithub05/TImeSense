@@ -1,0 +1,66 @@
+[
+  {
+    "input": "A recipe with 8 ingredients and 6 cooking steps, including 15 minutes of prep and 30 minutes of cooking.",
+    "output": {
+      "category": "recipe",
+      "summary": "Prepare the listed dish.",
+      "page_count": 1,
+      "num_questions": 0,
+      "num_steps": 6,
+      "num_ingredients": 8,
+      "difficulty": 2,
+      "estimated_minutes": 45,
+      "range_low": 40,
+      "range_high": 55,
+      "confidence": 0.94
+    }
+  },
+  {
+    "input": "Two pages of lecture notes containing approximately 900 words.",
+    "output": {
+      "category": "lecture_notes",
+      "summary": "Read and review the lecture notes.",
+      "page_count": 2,
+      "num_questions": 0,
+      "num_steps": 0,
+      "num_ingredients": 0,
+      "difficulty": 3,
+      "estimated_minutes": 8,
+      "range_low": 6,
+      "range_high": 12,
+      "confidence": 0.9
+    }
+  },
+  {
+    "input": "An assignment with 10 written questions across 3 pages.",
+    "output": {
+      "category": "assignment",
+      "summary": "Complete the written assignment questions.",
+      "page_count": 3,
+      "num_questions": 10,
+      "num_steps": 0,
+      "num_ingredients": 0,
+      "difficulty": 3,
+      "estimated_minutes": 45,
+      "range_low": 30,
+      "range_high": 70,
+      "confidence": 0.91
+    }
+  },
+  {
+    "input": "A difficult handwritten worksheet with 4 multi-part problems.",
+    "output": {
+      "category": "assignment",
+      "summary": "Solve the multi-part worksheet problems.",
+      "page_count": 1,
+      "num_questions": 4,
+      "num_steps": 0,
+      "num_ingredients": 0,
+      "difficulty": 5,
+      "estimated_minutes": 35,
+      "range_low": 25,
+      "range_high": 55,
+      "confidence": 0.72
+    }
+  }
+]

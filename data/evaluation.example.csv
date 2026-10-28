@@ -1,0 +1,4 @@
+category,page_count,num_questions,difficulty,gemini_estimate,actual_minutes
+assignment,2,5,3,20,25
+lecture_notes,4,0,2,16,14
+recipe,1,0,2,45,50
