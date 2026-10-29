@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL
   || (import.meta.env.VITE_API_HOST ? `https://${import.meta.env.VITE_API_HOST}` : "");
 
 function playCompletionAlert() {
-  if ("vibrate" in navigator) navigator.vibrate([250, 120, 250, 120, 450]);
+  if ("vibrate" in navigator) navigator.vibrate([500, 180, 500, 180, 700, 180, 900]);
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return;
   const context = new AudioContext();
@@ -28,8 +28,10 @@ function playCompletionAlert() {
 
 function Timer({ seconds, onFinish }) {
   const [remaining, setRemaining] = useState(seconds);
+  const finishedRef = useRef(false);
   useEffect(() => {
-    if (remaining <= 0) {
+    if (remaining <= 0 && !finishedRef.current) {
+      finishedRef.current = true;
       onFinish();
       playCompletionAlert();
       if ("Notification" in window && Notification.permission === "granted") {
@@ -49,6 +51,8 @@ function App() {
   const [error, setError] = useState("");
   const [cameraOpen, setCameraOpen] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(null);
+  const [timeUp, setTimeUp] = useState(false);
+  const [extensionUsed, setExtensionUsed] = useState(false);
   const [actualMinutes, setActualMinutes] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedbackSaved, setFeedbackSaved] = useState(false);
@@ -112,6 +116,9 @@ function App() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.detail || "Analysis failed.");
       setResult(payload);
+      setTimeUp(false);
+      setExtensionUsed(false);
+      setActualMinutes("");
       const timerResponse = await fetch(`${API_URL}/api/timer/start`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estimated_minutes: payload.estimated_minutes, task_id: payload.task_id }),
@@ -125,6 +132,14 @@ function App() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const addFiveMinutes = () => {
+    if (!result || extensionUsed) return;
+    setTimerSeconds(5 * 60);
+    setTimeUp(false);
+    setExtensionUsed(true);
+    setActualMinutes(String(result.estimated_minutes + 5));
   };
 
   const submitFeedback = async () => {
@@ -157,7 +172,7 @@ function App() {
     </header>
     {result && <div className="session-bar">
       <div className="session-file"><span className="session-icon">✓</span><div><strong>{file?.name || "Your task"}</strong><small>{result.category.replace("_", " ")} · {result.estimated_minutes} min estimate</small></div></div>
-      {timerSeconds !== null && <div className="session-timer"><span>FOCUSING</span><Timer seconds={timerSeconds} onFinish={() => setTimerSeconds(null)} /></div>}
+      {timerSeconds !== null && <div className="session-timer"><span>FOCUSING</span><Timer seconds={timerSeconds} onFinish={() => { setTimerSeconds(null); setTimeUp(true); }} /></div>}
     </div>}
 
     <section className="hero">
@@ -221,10 +236,17 @@ function App() {
         <h2>{result.summary}</h2>
         <div className="estimate-block"><span className="estimate-label">ESTIMATED FOCUS TIME</span><strong>{result.estimated_minutes}<small> min</small></strong><span className="range">Likely range: {result.range_low}–{result.range_high} minutes</span></div>
         {timerSeconds !== null && <div className="timer-panel"><div className="timer-label">FOCUS TIMER</div><p className="timer-active">Your focus timer is active above.</p><span>Stay with it. You’ve got this.</span></div>}
+        {timeUp && <div className="time-up-panel">
+          <div className="time-up-kicker">TIMER COMPLETE</div>
+          <h3>Time’s up!</h3>
+          <p>Your focus session has ended. Record your actual time or keep going if you need to.</p>
+          {!extensionUsed && <button className="primary-button" onClick={addFiveMinutes}>Need more time? Set 5 more minutes</button>}
+          {extensionUsed && <span className="extension-note">Your extra 5 minutes are included in the feedback below.</span>}
+        </div>}
       </div>
       <div className="card feedback-card">
         <span className="step-number">AFTER YOU FINISH</span><h2>Help us tune<br />your next estimate.</h2>
-        <label>How many minutes did it take? <input type="number" min="1" value={actualMinutes} onChange={(event) => setActualMinutes(event.target.value)} placeholder="e.g. 25" /></label>
+        <label>{extensionUsed ? "How many minutes did it take? (minimum shown includes your extra 5 minutes)" : "How many minutes did it take?"} <input type="number" min="1" value={actualMinutes} onChange={(event) => setActualMinutes(event.target.value)} placeholder="e.g. 25" /></label>
         <button className="secondary-button" onClick={submitFeedback}>Save feedback <span>→</span></button>
         {feedbackSaved && <p className="success">✓ Feedback saved. Future estimates will be more personal.</p>}
       </div>
