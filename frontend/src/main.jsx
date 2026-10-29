@@ -62,6 +62,16 @@ function App() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
+  useEffect(() => {
+    const splash = document.getElementById("initial-splash");
+    if (!splash) return undefined;
+    const hideTimer = window.setTimeout(() => {
+      splash.classList.add("splash-hidden");
+      window.setTimeout(() => splash.remove(), 400);
+    }, 350);
+    return () => window.clearTimeout(hideTimer);
+  }, []);
+
   const chooseFile = (event) => {
     setFile(event.target.files?.[0] || null);
     setError("");

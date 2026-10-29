@@ -5,8 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f7f2" />
     <title>TimeSense — Time well spent</title>
+    <style>
+      body { margin: 0; background: #f5f7f2; }
+      #initial-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background: #f5f7f2;
+        color: #1d2b2a;
+        transition: opacity .35s ease, visibility .35s ease;
+      }
+      #initial-splash.splash-hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .splash-content { display: grid; justify-items: center; gap: 16px; }
+      .splash-mark {
+        display: grid;
+        place-items: center;
+        width: 62px;
+        height: 62px;
+        border-radius: 18px 18px 18px 5px;
+        background: #ef8354;
+        color: #fff;
+        font: 500 1rem "DM Mono", monospace;
+        box-shadow: 0 12px 28px #ef83543b;
+      }
+      .splash-title { font: 700 1.25rem "DM Sans", sans-serif; letter-spacing: -.03em; }
+      .splash-loader { width: 54px; height: 3px; overflow: hidden; border-radius: 3px; background: #dfe6dc; }
+      .splash-loader::after {
+        display: block;
+        width: 30%;
+        height: 100%;
+        border-radius: inherit;
+        background: #ef8354;
+        content: "";
+        animation: splash-loading 1s ease-in-out infinite;
+      }
+      @keyframes splash-loading {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(350%); }
+      }
+    </style>
   </head>
   <body>
+    <div id="initial-splash" role="status" aria-label="Loading TimeSense">
+      <div class="splash-content">
+        <div class="splash-mark">TS</div>
+        <div class="splash-title">TimeSense</div>
+        <div class="splash-loader"></div>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
