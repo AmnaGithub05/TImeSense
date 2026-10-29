@@ -144,12 +144,26 @@ function App() {
     }
   };
 
-  const addFiveMinutes = () => {
+  const addFiveMinutes = async () => {
     if (!result || extensionUsed) return;
     setTimerSeconds(5 * 60);
     setTimeUp(false);
     setExtensionUsed(true);
-    setActualMinutes(String(result.estimated_minutes + 5));
+    const extendedMinutes = result.estimated_minutes + 5;
+    setActualMinutes(String(extendedMinutes));
+    try {
+      const response = await fetch(`${API_URL}/api/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: result.task_id, actual_minutes: extendedMinutes }),
+      });
+      if (!response.ok) throw new Error("Could not save the extra-time feedback.");
+      setFeedbackSaved(true);
+    } catch (requestError) {
+      setError(requestError instanceof TypeError
+        ? "The extra timer started, but feedback could not be saved."
+        : requestError.message);
+    }
   };
 
   const submitFeedback = async () => {
@@ -262,6 +276,16 @@ function App() {
       </div>
     </section>}
     <footer><span>TimeSense</span><span>Built for better focus · Powered by Gemini</span></footer>
+    {timeUp && !extensionUsed && <div className="time-up-overlay" role="dialog" aria-modal="true" aria-labelledby="time-up-title">
+      <div className="time-up-dialog">
+        <div className="time-up-icon">✓</div>
+        <div className="time-up-kicker">FOCUS SESSION COMPLETE</div>
+        <h2 id="time-up-title">Not done yet?</h2>
+        <p>That’s okay. Would you like five more minutes to finish, or are you ready to exit?</p>
+        <button className="primary-button" onClick={addFiveMinutes}>5 minutes more</button>
+        <button className="secondary-button exit-button" onClick={() => window.location.reload()}>Exit</button>
+      </div>
+    </div>}
   </main>;
 }
 
