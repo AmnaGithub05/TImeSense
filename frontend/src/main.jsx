@@ -186,6 +186,19 @@ function App() {
     }
   }, [cameraOpen]);
 
+  if (timeUp && !extensionUsed) {
+    return <main className="time-up-screen">
+      <div className="time-up-dialog">
+        <div className="time-up-icon">✓</div>
+        <div className="time-up-kicker">FOCUS SESSION COMPLETE</div>
+        <h1>Not done yet?</h1>
+        <p>That’s okay. Would you like five more minutes to finish, or are you ready to exit?</p>
+        <button className="primary-button" onClick={addFiveMinutes}>5 minutes more</button>
+        <button className="secondary-button exit-button" onClick={() => window.location.reload()}>Exit</button>
+      </div>
+    </main>;
+  }
+
   return <main className="app-shell">
     <header className="topbar">
       <a className="brand" href="/">
@@ -276,16 +289,6 @@ function App() {
       </div>
     </section>}
     <footer><span>TimeSense</span><span>Built for better focus · Powered by Gemini</span></footer>
-    {timeUp && !extensionUsed && <div className="time-up-overlay" role="dialog" aria-modal="true" aria-labelledby="time-up-title">
-      <div className="time-up-dialog">
-        <div className="time-up-icon">✓</div>
-        <div className="time-up-kicker">FOCUS SESSION COMPLETE</div>
-        <h2 id="time-up-title">Not done yet?</h2>
-        <p>That’s okay. Would you like five more minutes to finish, or are you ready to exit?</p>
-        <button className="primary-button" onClick={addFiveMinutes}>5 minutes more</button>
-        <button className="secondary-button exit-button" onClick={() => window.location.reload()}>Exit</button>
-      </div>
-    </div>}
   </main>;
 }
 
