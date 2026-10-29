@@ -14,10 +14,11 @@ from .schemas import TaskExtraction
 LOGGER = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You estimate how long a user needs to finish the uploaded task.
-Return only JSON matching the supplied schema. Classify as recipe, lecture_notes, or
-assignment. Use these explicit assumptions: read lecture notes at 250 words/minute,
-read assignments at 200 words/minute, allow 3 minutes per written question, and
-estimate recipe preparation and cooking time from visible steps and ingredients.
+Return only JSON matching the supplied schema. Classify as recipe, lecture_notes,
+assignment, or custom. Use these explicit assumptions: read lecture notes at 250
+words/minute, read assignments at 200 words/minute, allow 3 minutes per written
+question, estimate recipe preparation and cooking time from visible steps and
+ingredients, and estimate custom tasks from the visible scope plus the user's intent.
 Do not invent counts that are not visible; use zero for non-applicable counts.
 """
 
@@ -78,8 +79,14 @@ class GeminiExtractor:
         self.model_name = model_name
         self.examples = load_few_shot_examples(few_shot_path)
 
-    def extract(self, content: bytes, mime_type: str) -> TaskExtraction:
+    def extract(
+        self, content: bytes, mime_type: str, task_intent: str = "", task_details: str = ""
+    ) -> TaskExtraction:
         """Extract a validated task, retrying once after malformed JSON."""
+        user_context = (
+            f"User's goal: {task_intent}\n"
+            f"Additional details: {task_details or 'None provided.'}"
+        )
         last_error: Exception | None = None
         for attempt in range(2):
             try:
@@ -87,7 +94,8 @@ class GeminiExtractor:
                     model=self.model_name,
                     contents=[
                         types.Part.from_bytes(data=content, mime_type=mime_type),
-                        "Analyze this task.",
+                        user_context,
+                        "Analyze this task using the user's goal and the visible content.",
                         self._format_examples(),
                     ],
                     config=types.GenerateContentConfig(

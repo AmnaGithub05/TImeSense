@@ -53,6 +53,8 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [cameraError, setCameraError] = useState("");
+  const [taskIntent, setTaskIntent] = useState("");
+  const [taskDetails, setTaskDetails] = useState("");
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -103,6 +105,8 @@ function App() {
     }
     const body = new FormData();
     body.append("file", file);
+    body.append("task_intent", taskIntent.trim());
+    body.append("task_details", taskDetails.trim());
     try {
       const response = await fetch(`${API_URL}/api/analyze`, { method: "POST", body });
       const payload = await response.json();
@@ -159,7 +163,7 @@ function App() {
     <section className="hero">
       <div className="eyebrow">FOCUS WITH CONFIDENCE</div>
       <h1>Turn any task into<br /><em>time well spent.</em></h1>
-      <p>Upload a recipe, lecture note, or assignment. TimeSense understands it, estimates the effort, and starts your focus timer.</p>
+      <p>Show us what you want to work on. TimeSense uses the image and your goal to create a realistic focus estimate.</p>
     </section>
 
     <section className="workspace-grid">
@@ -184,7 +188,16 @@ function App() {
             <button className="secondary-button" onClick={stopCamera}>Cancel</button>
           </div>
         </div>}
-        <button className="primary-button analyze-button" disabled={!file || isAnalyzing} onClick={analyze}>
+        <div className="intent-box">
+          <div className="intent-heading"><span className="step-number">02</span><div><h2>What would you like to do?</h2><p>Tell us your goal so the estimate fits your task.</p></div></div>
+          <label className="field-label">Your goal <span>required</span>
+            <input value={taskIntent} onChange={(event) => setTaskIntent(event.target.value)} placeholder="e.g. I want to clean my room" maxLength="500" />
+          </label>
+          <label className="field-label">Any useful details? <span>optional</span>
+            <textarea value={taskDetails} onChange={(event) => setTaskDetails(event.target.value)} placeholder="e.g. Focus on the desk, floor, and clothes. I have 45 minutes." rows="3" maxLength="1000" />
+          </label>
+        </div>
+        <button className="primary-button analyze-button" disabled={!file || taskIntent.trim().length < 3 || isAnalyzing} onClick={analyze}>
           {isAnalyzing ? <><span className="spinner" /> Reading your task...</> : <>Analyze & start timer <span>→</span></>}
         </button>
         <p className="privacy-note">✦ Your file is processed securely and never shared.</p>

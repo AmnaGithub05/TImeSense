@@ -10,7 +10,7 @@ class TaskExtraction(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    category: Literal["recipe", "lecture_notes", "assignment"]
+    category: Literal["recipe", "lecture_notes", "assignment", "custom"]
     summary: str = Field(min_length=1, max_length=2000)
     page_count: int = Field(ge=0)
     num_questions: int = Field(ge=0)

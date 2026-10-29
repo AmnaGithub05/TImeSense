@@ -9,9 +9,11 @@ class FakeModel:
     def __init__(self, responses):
         self.responses = iter(responses)
         self.calls = 0
+        self.requests = []
 
     def generate_content(self, **kwargs):
         self.calls += 1
+        self.requests.append(kwargs)
         return type("Response", (), {"text": next(self.responses)})()
 
 
@@ -37,10 +39,24 @@ def test_extract_validates_structured_response():
     extractor.model = model
     extractor.model_name = "test-model"
 
-    result = extractor.extract(b"file", "application/pdf")
+    result = extractor.extract(b"file", "application/pdf", "finish the worksheet", "It is due tomorrow.")
 
     assert result.category == "assignment"
     assert model.calls == 1
+
+
+def test_extract_includes_user_context_in_gemini_request():
+    model = FakeModel([json.dumps(valid_payload())])
+    extractor = GeminiExtractor.__new__(GeminiExtractor)
+    extractor.model = model
+    extractor.model_name = "test-model"
+
+    extractor.extract(b"file", "image/jpeg", "clean my room", "Focus on the desk and floor.")
+
+    assert model.calls == 1
+    content = model.requests[0]["contents"]
+    assert "clean my room" in content[1]
+    assert "Focus on the desk and floor." in content[1]
 
 
 def test_extract_retries_once_for_invalid_response():

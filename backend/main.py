@@ -5,7 +5,7 @@ import logging
 import os
 from functools import lru_cache
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from .cache import ResponseCache
@@ -63,18 +63,27 @@ app.add_middleware(
 
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)
-async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
-    """Upload a PDF/image and return Gemini's validated task estimate."""
+async def analyze(
+    file: UploadFile = File(...),
+    task_intent: str = Form(..., min_length=3, max_length=500),
+    task_details: str = Form("", max_length=1000),
+) -> AnalyzeResponse:
+    """Analyze an upload using the user's intended task and optional details."""
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=415,
             detail="Upload a PDF, JPEG, PNG, or WebP file.",
         )
+    task_intent = task_intent.strip()
+    task_details = task_details.strip()
+    if len(task_intent) < 3:
+        raise HTTPException(status_code=422, detail="Tell us what you want to do with this image.")
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="The uploaded file is empty.")
 
-    file_hash = hashlib.sha256(content).hexdigest()
+    cache_input = content + b"\0" + task_intent.strip().encode() + b"\0" + task_details.strip().encode()
+    file_hash = hashlib.sha256(cache_input).hexdigest()
     cached = get_cache().get(file_hash)
     if cached:
         extraction_data = {key: value for key, value in cached.items() if key not in {"task_id", "cached"}}
@@ -95,7 +104,9 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         )
 
     try:
-        extraction = get_extractor().extract(content, file.content_type)
+        extraction = get_extractor().extract(
+            content, file.content_type, task_intent.strip(), task_details.strip()
+        )
     except ValueError as error:
         raise HTTPException(
             status_code=502,
