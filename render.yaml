@@ -28,8 +28,5 @@ services:
     staticPublishPath: dist
     rootDir: frontend
     envVars:
-      - key: VITE_API_HOST
-        fromService:
-          type: web
-          name: timesense-api
-          property: host
+      - key: VITE_API_URL
+        sync: false
